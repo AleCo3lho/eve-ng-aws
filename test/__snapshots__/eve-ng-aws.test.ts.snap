@@ -1,0 +1,283 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`snapshot for EveNGStack matches previous state 1`] = `
+{
+  "Mappings": {
+    "EveNGInstanceAmiMap75116364": {
+      "us-east-1": {
+        "ami": "ami-0a0e5d9c7acc336f1",
+      },
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "EveNGInstance04A221F1": {
+      "DependsOn": [
+        "EveNGInstanceInstanceRoleD495F1FC",
+      ],
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "IamInstanceProfile": {
+          "Ref": "EveNGInstanceInstanceProfileE90C707D",
+        },
+        "ImageId": {
+          "Fn::FindInMap": [
+            "EveNGInstanceAmiMap75116364",
+            {
+              "Ref": "AWS::Region",
+            },
+            "ami",
+          ],
+        },
+        "InstanceType": "c5.metal",
+        "SecurityGroupIds": [
+          {
+            "Fn::GetAtt": [
+              "EveNGInstanceInstanceSecurityGroupCFF0612C",
+              "GroupId",
+            ],
+          },
+        ],
+        "SubnetId": {
+          "Ref": "EveNGVpcPublicSubNetSubnet1SubnetFF592884",
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TestEveNGStack/EveNGInstance",
+          },
+        ],
+        "UserData": {
+          "Fn::Base64": "#!/bin/bash
+set -o xtrace
+sudo -i
+       wget -O - https://www.eve-ng.net/jammy/install-eve.sh | bash -i
+       apt update
+       apt upgrade
+       /opt/unetlab/wrappers/unl_wrapper -a fixpermissions
+      ",
+        },
+      },
+      "Type": "AWS::EC2::Instance",
+    },
+    "EveNGInstanceInstanceProfileE90C707D": {
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "EveNGInstanceInstanceRoleD495F1FC",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
+    },
+    "EveNGInstanceInstanceRoleD495F1FC": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/AmazonSSMManagedInstanceCore",
+              ],
+            ],
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TestEveNGStack/EveNGInstance",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "EveNGInstanceInstanceSecurityGroupCFF0612C": {
+      "Properties": {
+        "GroupDescription": "TestEveNGStack/EveNGInstance/InstanceSecurityGroup",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TestEveNGStack/EveNGInstance",
+          },
+        ],
+        "VpcId": {
+          "Ref": "EveNGVpc1017EA53",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "EveNGVpc1017EA53": {
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsHostnames": true,
+        "EnableDnsSupport": true,
+        "InstanceTenancy": "default",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TestEveNGStack/EveNGVpc",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::VPC",
+    },
+    "EveNGVpcIGWB0E7859E": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TestEveNGStack/EveNGVpc",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::InternetGateway",
+    },
+    "EveNGVpcPublicSubNetSubnet1DefaultRoute2654F977": {
+      "DependsOn": [
+        "EveNGVpcVPCGWDA51C968",
+      ],
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "EveNGVpcIGWB0E7859E",
+        },
+        "RouteTableId": {
+          "Ref": "EveNGVpcPublicSubNetSubnet1RouteTable6A240009",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "EveNGVpcPublicSubNetSubnet1RouteTable6A240009": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "TestEveNGStack/EveNGVpc/PublicSubNetSubnet1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "EveNGVpc1017EA53",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "EveNGVpcPublicSubNetSubnet1RouteTableAssociation2D6B4EE5": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "EveNGVpcPublicSubNetSubnet1RouteTable6A240009",
+        },
+        "SubnetId": {
+          "Ref": "EveNGVpcPublicSubNetSubnet1SubnetFF592884",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "EveNGVpcPublicSubNetSubnet1SubnetFF592884": {
+      "Properties": {
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": "",
+            },
+          ],
+        },
+        "CidrBlock": "10.0.0.0/16",
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "PublicSubNet",
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public",
+          },
+          {
+            "Key": "Name",
+            "Value": "TestEveNGStack/EveNGVpc/PublicSubNetSubnet1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "EveNGVpc1017EA53",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "EveNGVpcVPCGWDA51C968": {
+      "Properties": {
+        "InternetGatewayId": {
+          "Ref": "EveNGVpcIGWB0E7859E",
+        },
+        "VpcId": {
+          "Ref": "EveNGVpc1017EA53",
+        },
+      },
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
