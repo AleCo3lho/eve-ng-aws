@@ -3,7 +3,7 @@
 exports[`snapshot for EveNGStack matches previous state 1`] = `
 {
   "Mappings": {
-    "EveNGInstanceAmiMap75116364": {
+    "EveNGASGAmiMapA8284209": {
       "us-east-1": {
         "ami": "ami-0a0e5d9c7acc336f1",
       },
@@ -17,73 +17,47 @@ exports[`snapshot for EveNGStack matches previous state 1`] = `
     },
   },
   "Resources": {
-    "EveNGInstance04A221F1": {
-      "DependsOn": [
-        "EveNGInstanceInstanceRoleD495F1FC",
-      ],
+    "EveNGASGB28FC224": {
+      "DeletionPolicy": "Delete",
       "Properties": {
-        "AvailabilityZone": {
-          "Fn::Select": [
-            0,
-            {
-              "Fn::GetAZs": "",
-            },
-          ],
+        "DesiredCapacity": "1",
+        "LaunchConfigurationName": {
+          "Ref": "EveNGASGLaunchConfigCDF0573A",
         },
-        "IamInstanceProfile": {
-          "Ref": "EveNGInstanceInstanceProfileE90C707D",
-        },
-        "ImageId": {
-          "Fn::FindInMap": [
-            "EveNGInstanceAmiMap75116364",
-            {
-              "Ref": "AWS::Region",
-            },
-            "ami",
-          ],
-        },
-        "InstanceType": "c5.metal",
-        "SecurityGroupIds": [
-          {
-            "Fn::GetAtt": [
-              "EveNGInstanceInstanceSecurityGroupCFF0612C",
-              "GroupId",
-            ],
-          },
-        ],
-        "SubnetId": {
-          "Ref": "EveNGVpcPublicSubNetSubnet1SubnetFF592884",
-        },
+        "MaxSize": "1",
+        "MinSize": "1",
         "Tags": [
           {
             "Key": "Name",
-            "Value": "TestEveNGStack/EveNGInstance",
+            "PropagateAtLaunch": true,
+            "Value": "TestEveNGStack/EveNGASG",
           },
         ],
-        "UserData": {
-          "Fn::Base64": "#!/bin/bash
-set -o xtrace
-sudo -i
-       wget -O - https://www.eve-ng.net/jammy/install-eve.sh | bash -i
-       apt update
-       apt upgrade
-       /opt/unetlab/wrappers/unl_wrapper -a fixpermissions
-      ",
+        "VPCZoneIdentifier": [
+          {
+            "Ref": "EveNGVpcPublicSubNetSubnet1SubnetFF592884",
+          },
+        ],
+      },
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "UpdatePolicy": {
+        "AutoScalingScheduledAction": {
+          "IgnoreUnmodifiedGroupSizeProperties": true,
         },
       },
-      "Type": "AWS::EC2::Instance",
+      "UpdateReplacePolicy": "Delete",
     },
-    "EveNGInstanceInstanceProfileE90C707D": {
+    "EveNGASGInstanceProfileED15502C": {
       "Properties": {
         "Roles": [
           {
-            "Ref": "EveNGInstanceInstanceRoleD495F1FC",
+            "Ref": "EveNGASGInstanceRole88B26E6E",
           },
         ],
       },
       "Type": "AWS::IAM::InstanceProfile",
     },
-    "EveNGInstanceInstanceRoleD495F1FC": {
+    "EveNGASGInstanceRole88B26E6E": {
       "Properties": {
         "AssumeRolePolicyDocument": {
           "Statement": [
@@ -114,35 +88,106 @@ sudo -i
         "Tags": [
           {
             "Key": "Name",
-            "Value": "TestEveNGStack/EveNGInstance",
+            "Value": "TestEveNGStack/EveNGASG",
           },
         ],
       },
       "Type": "AWS::IAM::Role",
     },
-    "EveNGInstanceInstanceSecurityGroupCFF0612C": {
+    "EveNGASGLaunchConfigCDF0573A": {
+      "DependsOn": [
+        "EveNGASGInstanceRole88B26E6E",
+      ],
       "Properties": {
-        "GroupDescription": "TestEveNGStack/EveNGInstance/InstanceSecurityGroup",
-        "SecurityGroupEgress": [
+        "AssociatePublicIpAddress": true,
+        "BlockDeviceMappings": [
           {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
+            "DeviceName": "/dev/sda1",
+            "Ebs": {
+              "VolumeSize": 100,
+            },
           },
         ],
-        "Tags": [
+        "IamInstanceProfile": {
+          "Ref": "EveNGASGInstanceProfileED15502C",
+        },
+        "ImageId": {
+          "Fn::FindInMap": [
+            "EveNGASGAmiMapA8284209",
+            {
+              "Ref": "AWS::Region",
+            },
+            "ami",
+          ],
+        },
+        "InstanceType": "c5.metal",
+        "KeyName": "EveNGKeyPair",
+        "SecurityGroups": [
           {
-            "Key": "Name",
-            "Value": "TestEveNGStack/EveNGInstance",
+            "Fn::GetAtt": [
+              "EveNgSG8D618850",
+              "GroupId",
+            ],
           },
         ],
-        "VpcId": {
-          "Ref": "EveNGVpc1017EA53",
+        "SpotPrice": "1.30",
+        "UserData": {
+          "Fn::Base64": "#!/bin/bash
+sudo -i
+
+set -o xtrace
+
+resize2fs /dev/sda1
+
+sed -i -e "s/.*PermitRootLogin .*/PermitRootLogin yes/" /etc/ssh/sshd_config
+
+sed -i -e "s/.*PasswordAuthentication .*/PasswordAuthentication yes/" /etc/ssh/sshd_config
+
+service ssh restart
+
+wget -O - http://www.eve-ng.net/jammy/eczema@ecze.com.gpg.key | gpg --dearmor -o /etc/apt/trusted.gpg.d/eve-ng.gpg
+
+echo "deb [arch=amd64] http://www.eve-ng.net/jammy jammy main" > /etc/apt/sources.list.d/eve-ng.list
+
+apt-get update
+
+apt-get upgrade
+
+apt-get -y install software-properties-common python3-pip
+
+DEBIAN_FRONTEND=noninteractive apt-get -y install eve-ng
+
+pip install gdown
+
+gdown https://drive.google.com/drive/folders/1ORWpJOO-8B-tsQe95gnhEqzQ5vZl2CMm -O /root/eveng/os --folder
+
+mv /root/eveng/os/image/* /opt/unetlab/addons/dynamips/
+
+mv /root/eveng/os/qemu/* /opt/unetlab/addons/qemu/
+
+mv /root/eveng/os/IOL/* /opt/unetlab/addons/iol/
+
+cd /opt/unetlab/addons/iol/
+
+cat *.tar.gz | tar zxvf - -i
+
+/opt/unetlab/wrappers/unl_wrapper -a fixpermissions
+",
         },
       },
-      "Type": "AWS::EC2::SecurityGroup",
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+    },
+    "EveNGKeyPair": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "KeyName": "EveNGKeyPair",
+        "PublicKeyMaterial": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDSJwHY4iZRd9G5szIVmiypqlpcpOprzqnLzq5g+c55bdtTdEnc3fP+omR98Obolhx1MLVxoT5bS9C96id+28t/6JjutwGoVb61KUNaAwyMO1Q6PE5N0TZFCJf3sSerE+paYHPGzP1FsrvZ3W0xGhyuHsH2ukxVNw0af4b04x4uE7seV7qaDvpwMrwpIhQExof1xUfWbNlrsfdb2Z50iip72efEBBAeixiI6oZO6jYZGvTzRbXQYKLQ3zbNFakTjkb2WG/70uESljhConvmNmBjyh2ApFld+xFA8j8b4mCWZtGXvcM5Y1Gom36hirL22HPRphRFYu4sQOmIXAeGkaG3XQ7cnEilo8PBpqb3ByRpdPOrdp9sE2o04mSBVmPLQ4JATSh2Sw2rQw0Is6s9YSMl7jKwdQxZPLQ2XoW3Vdl+vIowqpeWv7vH5n3yhYwSOwnhUfGkqQeVsk+v53/S0e8+4S4aLAflSiLBc/wVeQCbkt/HdTNhSE01YhS8KIlSdRU= alexandrecoelho@Alexandres-MacBook-Pro.local",
+      },
+      "Type": "AWS::EC2::KeyPair",
+      "UpdateReplacePolicy": "Delete",
     },
     "EveNGVpc1017EA53": {
+      "DeletionPolicy": "Delete",
       "Properties": {
         "CidrBlock": "10.0.0.0/16",
         "EnableDnsHostnames": true,
@@ -156,6 +201,7 @@ sudo -i
         ],
       },
       "Type": "AWS::EC2::VPC",
+      "UpdateReplacePolicy": "Delete",
     },
     "EveNGVpcIGWB0E7859E": {
       "Properties": {
@@ -250,6 +296,31 @@ sudo -i
         },
       },
       "Type": "AWS::EC2::VPCGatewayAttachment",
+    },
+    "EveNgSG8D618850": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "GroupDescription": "TestEveNGStack/EveNgSG",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "from 0.0.0.0/0:ALL TRAFFIC",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": {
+          "Ref": "EveNGVpc1017EA53",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+      "UpdateReplacePolicy": "Delete",
     },
   },
   "Rules": {
