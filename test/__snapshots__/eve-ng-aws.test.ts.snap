@@ -121,7 +121,6 @@ exports[`snapshot for EveNGStack matches previous state 1`] = `
           ],
         },
         "InstanceType": "c5.metal",
-        "KeyName": "EveNGKeyPair",
         "SecurityGroups": [
           {
             "Fn::GetAtt": [
@@ -161,10 +160,13 @@ pip install gdown
 
 gdown https://drive.google.com/drive/folders/1ORWpJOO-8B-tsQe95gnhEqzQ5vZl2CMm -O /root/eveng/os --folder
 
+mkdir -p /opt/unetlab/addons/dynamips/
 mv /root/eveng/os/image/* /opt/unetlab/addons/dynamips/
 
+mkdir -p /opt/unetlab/addons/qemu/
 mv /root/eveng/os/qemu/* /opt/unetlab/addons/qemu/
 
+mkdir -p /opt/unetlab/addons/iol/
 mv /root/eveng/os/IOL/* /opt/unetlab/addons/iol/
 
 cd /opt/unetlab/addons/iol/
@@ -176,15 +178,6 @@ cat *.tar.gz | tar zxvf - -i
         },
       },
       "Type": "AWS::AutoScaling::LaunchConfiguration",
-    },
-    "EveNGKeyPair": {
-      "DeletionPolicy": "Delete",
-      "Properties": {
-        "KeyName": "EveNGKeyPair",
-        "PublicKeyMaterial": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDSJwHY4iZRd9G5szIVmiypqlpcpOprzqnLzq5g+c55bdtTdEnc3fP+omR98Obolhx1MLVxoT5bS9C96id+28t/6JjutwGoVb61KUNaAwyMO1Q6PE5N0TZFCJf3sSerE+paYHPGzP1FsrvZ3W0xGhyuHsH2ukxVNw0af4b04x4uE7seV7qaDvpwMrwpIhQExof1xUfWbNlrsfdb2Z50iip72efEBBAeixiI6oZO6jYZGvTzRbXQYKLQ3zbNFakTjkb2WG/70uESljhConvmNmBjyh2ApFld+xFA8j8b4mCWZtGXvcM5Y1Gom36hirL22HPRphRFYu4sQOmIXAeGkaG3XQ7cnEilo8PBpqb3ByRpdPOrdp9sE2o04mSBVmPLQ4JATSh2Sw2rQw0Is6s9YSMl7jKwdQxZPLQ2XoW3Vdl+vIowqpeWv7vH5n3yhYwSOwnhUfGkqQeVsk+v53/S0e8+4S4aLAflSiLBc/wVeQCbkt/HdTNhSE01YhS8KIlSdRU= alexandrecoelho@Alexandres-MacBook-Pro.local",
-      },
-      "Type": "AWS::EC2::KeyPair",
-      "UpdateReplacePolicy": "Delete",
     },
     "EveNGVpc1017EA53": {
       "DeletionPolicy": "Delete",
